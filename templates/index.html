@@ -17,4 +17,7 @@
         <img src="{{ url_for('static', filename='output.png') }}" width="800">
     {% endif %}
 </body>
+<form action="/recommend" method="get">
+    <button type="submit">View Recommended Stocks</button>
+</form>
 </html>
