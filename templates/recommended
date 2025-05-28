@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Recommended Stocks</title>
+</head>
+<body>
+    <a href="{{ url_for('index') }}">
+    <button>Back to Home</button>
+    </a>
+    <h1>📈 Recommended Stocks to Watch</h1>
+    {% if recommended %}
+        <ul>
+        {% for symbol in recommended %}
+            <li>{{ symbol }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No recommendations today.</p>
+    {% endif %}
+</body>
+</html>
