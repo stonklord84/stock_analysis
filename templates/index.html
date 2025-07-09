@@ -12,9 +12,13 @@
         <button type="submit">Analyze</button>
     </form>
 
+
     {% if signal %}
         <h2>Signal: {{ signal }}</h2>
         <img src="{{ url_for('static', filename='output.png') }}" width="800">
+        <form action = "/" method="get">
+            <button type="submit">Go back</button>
+        </form>
     {% endif %}
 </body>
 <form action="/recommend" method="get">
