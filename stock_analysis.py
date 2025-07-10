@@ -42,6 +42,7 @@ def analyze_stock(symbol):
                 data.set_index("Date", inplace=True)
 
                 conn.close()
+                print(f"FINISHED analyzing {symbol}")
                 return generate_chart_and_signal(symbol, data)
 
     # Else: download fresh data
@@ -113,11 +114,3 @@ def generate_chart_and_signal(symbol, data):
     signal_label = "BULLISH - BUY" if latest_signal == 1 else "SELL" if latest_signal == -1 else "HOLD"
     return signal_label
 
-
-print('uh')
-conn = sqlite3.connect("data/stock_data.db")
-cursor = conn.cursor()
-cursor.execute(f"PRAGMA table_info('NVDA')")
-columns_info = cursor.fetchall()
-print(f"Columns in NVDA table:", columns_info)
-conn.close()
