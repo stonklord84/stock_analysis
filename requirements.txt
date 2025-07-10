@@ -1,4 +1,5 @@
 Flask
 yfinance
-pandas
 matplotlib
+pandas
+flask-bcrypt
