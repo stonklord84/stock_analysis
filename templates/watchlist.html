@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Your Watchlist</title>
+</head>
+<body>
+    <a href="{{ url_for('index') }}">
+        <button>Back to Home</button>
+    </a>
+
+    <h1>Your Watchlist</h1>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="post">
+        <label for="symbol">Add Symbol:</label>
+        <input type="text" name="symbol" id="symbol" required>
+        <button type="submit">Add</button>
+    </form>
+
+    {% if symbols %}
+        <ul>
+        {% for sym in symbols %}
+            <li>
+                {{ sym }}
+                <form action="{{ url_for('remove_from_watchlist', symbol=sym) }}" method="post" style="display:inline;">
+                    <button type="submit">Remove</button>
+                </form>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>Your watchlist is empty.</p>
+    {% endif %}
+</body>
+</html>
