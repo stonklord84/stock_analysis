@@ -3,6 +3,7 @@ from stock_analysis import analyze_stock, get_recommended_stocks
 from flask_bcrypt import Bcrypt
 import sqlite3
 import os
+from flask import flash
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
@@ -84,6 +85,38 @@ def index():
 def recommended():
     recommended = get_recommended_stocks()
     return render_template("recommended.html", recommended=recommended)
+
+@app.route("/watchlist", methods=["GET", "POST"])
+@login_required
+def watchlist():
+    user_id = session["user_id"]
+    conn = get_db_connection()
+
+    if request.method == "POST":
+        symbol = request.form["symbol"].upper()
+        try:
+            conn.execute("INSERT INTO watchlist (user_id, symbol) VALUES (?, ?)", (user_id, symbol))
+            conn.commit()
+            flash(f"Added {symbol} to your watchlist.")
+        except sqlite3.IntegrityError:
+            flash(f"{symbol} is already in your watchlist.")
+    
+    watchlist_data = conn.execute("SELECT symbol FROM watchlist WHERE user_id = ?", (user_id,)).fetchall()
+    conn.close()
+    symbols = [row["symbol"] for row in watchlist_data]
+    return render_template("watchlist.html", symbols=symbols)
+
+@app.route("/watchlist/remove/<symbol>", methods=["POST"])
+@login_required
+def remove_from_watchlist(symbol):
+    user_id = session["user_id"]
+    conn = get_db_connection()
+    conn.execute("DELETE FROM watchlist WHERE user_id = ? AND symbol = ?", (user_id, symbol.upper()))
+    conn.commit()
+    conn.close()
+    flash(f"Removed {symbol.upper()} from your watchlist.")
+    return redirect(url_for("watchlist"))
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
