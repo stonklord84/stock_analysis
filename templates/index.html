@@ -20,6 +20,11 @@
             <button type="submit">Go back</button>
         </form>
     {% endif %}
+
+    <form action="{{ url_for('watchlist') }}" method="get" style="margin-top: 20px;">
+    <button type="submit">Go to My Watchlist</button>
+    </form>
+
 </body>
 <form action="/recommend" method="get">
     <button type="submit">View Recommended Stocks</button>
