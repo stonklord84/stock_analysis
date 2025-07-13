@@ -21,6 +21,18 @@
         </form>
     {% endif %}
 
+    {% if news %}
+        <h2>Latest news for {{ symbol }}</h2>
+        <ul>
+            {% for item in news %}
+                <li>
+                    <a href="{{ item.url }}" target="_blank">{{ item.headline }}</a><br>
+                    <small>Source: {{ item.source }} | Published: {{ item.datetime | datetimeformat }}</small>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
     <form action="{{ url_for('watchlist') }}" method="get" style="margin-top: 20px;">
     <button type="submit">Go to My Watchlist</button>
     </form>
