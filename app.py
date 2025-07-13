@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-from stock_analysis import analyze_stock, get_recommended_stocks
+from stock_analysis import analyze_stock, get_recommended_stocks, get_stock_news
 from flask_bcrypt import Bcrypt
 import sqlite3
 import os
@@ -74,11 +74,26 @@ def logout():
 def index():
     signal = None
     symbol = ""
+    news = []
+
+    user_id = session["user_id"]
+    print(user_id, 'hi, user_id')
+
+    conn = get_db_connection()
+    watchlist_data = conn.execute("SELECT symbol FROM watchlist WHERE user_id = ?", (user_id,)).fetchall()
+    conn.close()
+    symbols = [row["symbol"] for row in watchlist_data]
+
     if request.method == "POST":
         symbol = request.form["symbol"].upper()
         signal = analyze_stock(symbol)
+    else:
+        if symbols:
+            symbol = symbols[0]
+            signal = analyze_stock(symbol)
+            news = get_stock_news(symbol)
 
-    return render_template("index.html", signal=signal, symbol=symbol)
+    return render_template("index.html", signal=signal, symbol=symbol, news=news)
 
 @app.route("/recommend")
 @login_required
@@ -130,7 +145,15 @@ def remove_from_watchlist(symbol):
     flash(f"Removed {symbol.upper()} from your watchlist.")
     return redirect(url_for("watchlist"))
 
+from datetime import datetime
 
+@app.template_filter('datetimeformat')
+def datetimeformat(value):
+    try:
+        return datetime.fromtimestamp(value).strftime('%Y-%m-%d %H:%M')
+    except Exception:
+        return "Unknown"
+    
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
