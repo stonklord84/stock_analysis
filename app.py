@@ -92,6 +92,7 @@ def watchlist():
     user_id = session["user_id"]
     conn = get_db_connection()
 
+    # Handle adding new symbols
     if request.method == "POST":
         symbol = request.form["symbol"].upper()
         try:
@@ -100,11 +101,23 @@ def watchlist():
             flash(f"Added {symbol} to your watchlist.")
         except sqlite3.IntegrityError:
             flash(f"{symbol} is already in your watchlist.")
-    
+
+    # Fetch all symbols in watchlist
     watchlist_data = conn.execute("SELECT symbol FROM watchlist WHERE user_id = ?", (user_id,)).fetchall()
     conn.close()
     symbols = [row["symbol"] for row in watchlist_data]
-    return render_template("watchlist.html", symbols=symbols)
+
+    # Analyze each stock and get the signal
+    signals = []
+    for sym in symbols:
+        try:
+            signal = analyze_stock(sym)
+        except Exception as e:
+            signal = f"Error: {e}"
+        signals.append({"symbol": sym, "signal": signal})
+
+    return render_template("watchlist.html", signals=signals)
+
 
 @app.route("/watchlist/remove/<symbol>", methods=["POST"])
 @login_required
