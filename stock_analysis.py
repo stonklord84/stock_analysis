@@ -4,6 +4,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import sqlite3
+import requests
 
 
 popular_symbols = ["AAPL","MSFT","NVDA","GOOGL","AMZN","TSLA","META","BRK.B","JPM","V"]
@@ -114,3 +115,26 @@ def generate_chart_and_signal(symbol, data):
     signal_label = "BULLISH - BUY" if latest_signal == 1 else "SELL" if latest_signal == -1 else "HOLD"
     return signal_label
 
+from datetime import datetime, timedelta
+
+FINNHUB_API_KEY = "d1q3ptpr01qrh89nvv9gd1q3ptpr01qrh89nvva0"
+def get_stock_news(symbol, limit=5):
+    today = datetime.now().strftime('%Y-%m-%d')
+    from_date = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')  # Last 7 days
+
+    url = (
+        f"https://finnhub.io/api/v1/company-news"
+        f"?symbol={symbol}&from={from_date}&to={today}&token={FINNHUB_API_KEY}"
+    )
+
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            news = response.json()
+            return news[:limit]
+        else:
+            print(f"Error fetching news: {response.status_code}")
+            return []
+    except Exception as e:
+        print(f"Exception during news fetch: {e}")
+        return []
