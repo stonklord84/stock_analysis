@@ -8,7 +8,7 @@
         <button>Back to Home</button>
     </a>
 
-    <h1>Your Watchlist</h1>
+    <h1>Your Watchlist & Signals</h1>
 
     {% with messages = get_flashed_messages() %}
       {% if messages %}
@@ -26,17 +26,25 @@
         <button type="submit">Add</button>
     </form>
 
-    {% if symbols %}
-        <ul>
-        {% for sym in symbols %}
-            <li>
-                {{ sym }}
-                <form action="{{ url_for('remove_from_watchlist', symbol=sym) }}" method="post" style="display:inline;">
-                    <button type="submit">Remove</button>
-                </form>
-            </li>
-        {% endfor %}
-        </ul>
+    {% if signals %}
+        <table border="1" cellpadding="5" cellspacing="0">
+            <tr>
+                <th>Symbol</th>
+                <th>Signal</th>
+                <th>Action</th>
+            </tr>
+            {% for item in signals %}
+            <tr>
+                <td>{{ item.symbol }}</td>
+                <td>{{ item.signal }}</td>
+                <td>
+                    <form action="{{ url_for('remove_from_watchlist', symbol=item.symbol) }}" method="post" style="display:inline;">
+                        <button type="submit">Remove</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
     {% else %}
         <p>Your watchlist is empty.</p>
     {% endif %}
