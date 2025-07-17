@@ -68,7 +68,43 @@ def analyze_stock(symbol):
 
     data.set_index("Date", inplace=True)
     return generate_chart_and_signal(symbol, data)
-    
+
+
+def generate_fair_value(symbol):
+    stock = yf.Ticker(symbol)
+    try:
+        eps = stock.info['trailingEps']
+        sector = stock.info.get('sector')
+        sector_pe = {
+            "Technology": 30,
+            "Financial Services": 15,
+            "Healthcare": 20,
+            "Energy": 12,
+            "Industrials": 16,
+        }
+        if eps and eps > 0:
+            industry_pe = sector_pe[sector]
+            fair_value = round(eps * industry_pe, 2)
+
+            conn = sqlite3.connect("data/stock_data.db")
+            cursor = conn.cursor()
+            cursor.execute(f'SELECT Close FROM "{symbol}" ORDER BY Date DESC LIMIT 1')
+            row = cursor.fetchone()
+            conn.close()
+
+            if not row:
+                print(f'no price data found for {symbol}')
+                return None
+            latest_price = row[0]
+            return [fair_value, latest_price]
+        else:
+            return None
+    except Exception as e:
+        print(f"Error calculating fair value for {symbol}: {e}")
+        return None
+
+
+        
 
 """def precompute_all():
     for symbol in popular_symbols:
@@ -114,6 +150,8 @@ def generate_chart_and_signal(symbol, data):
 
     signal_label = "BULLISH - BUY" if latest_signal == 1 else "SELL" if latest_signal == -1 else "HOLD"
     return signal_label
+
+
 
 from datetime import datetime, timedelta
 
