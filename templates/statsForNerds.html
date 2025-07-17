@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stock Analysis - {{ symbol }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 2rem;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: left;
+            color: #333;
+        }
+        table {
+            margin: 2rem left;
+            width: 60%;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 1rem;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        caption {
+            caption-side: top;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        .info-tooltip {
+            position: relative;
+            cursor: help;
+            display: inline-block;
+            margin-left: 5px;
+            font-size: 0.9em;
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            width: 240px;
+            background-color: #333;
+            color: #fff;
+            text-align: left;
+            border-radius: 5px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            top: 20px;
+            left: 0;
+            font-size: 0.85em;
+            line-height: 1.3;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+        }
+        
+        .info-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <h1>Quantitative Analysis Report for {{ symbol }}</h1>
+
+    <table>
+        <tr>
+            <th>Metric</th>
+            <th>Value</th>
+        </tr>
+        <tr>
+            <td>Fair Value</td>
+            <span class="info-tooltip">ℹ️
+                <span class="tooltip-text">
+                    Estimated using EPS × industry P/E<br>
+                    EPS from yfinance; industry P/E is an educated guess according to online sources.
+                </span>
+            </span>
+            <td>{{ fair_value }}</td>
+        </tr>
+        <tr>
+            <td>Latest Price</td>
+            <td>{{ latest_price }}, {{ signal }}</td>
+        </tr>
+        <!-- Add more rows here if needed -->
+    </table>
+</body>
+</html>
