@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-from stock_analysis import analyze_stock, get_recommended_stocks, get_stock_news
+from stock_analysis import analyze_stock, generate_fair_value, get_recommended_stocks, get_stock_news
 from flask_bcrypt import Bcrypt
 import sqlite3
 import os
@@ -95,11 +95,26 @@ def index():
 
     return render_template("index.html", signal=signal, symbol=symbol, news=news)
 
+@app.route("/statsForNerds", methods=["GET", "POST"])
+@login_required
+def statsForNerds():
+    symbol = request.args.get("symbol", "")
+    fair_value = generate_fair_value(symbol)[0]
+    latest_price = generate_fair_value(symbol)[1]
+    signal = ''
+    if latest_price >= fair_value:
+        signal = 'Current price is overvalued'
+    else:
+        signal = 'Current price is undervalued'
+    return render_template("statsForNerds.html", symbol=symbol, fair_value=fair_value, latest_price=latest_price, signal=signal)
+
+
 @app.route("/recommend")
 @login_required
 def recommended():
     recommended = get_recommended_stocks()
     return render_template("recommended.html", recommended=recommended)
+
 
 @app.route("/watchlist", methods=["GET", "POST"])
 @login_required
@@ -144,6 +159,7 @@ def remove_from_watchlist(symbol):
     conn.close()
     flash(f"Removed {symbol.upper()} from your watchlist.")
     return redirect(url_for("watchlist"))
+
 
 from datetime import datetime
 
