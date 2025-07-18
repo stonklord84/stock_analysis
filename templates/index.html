@@ -2,10 +2,64 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Stock Analyzer</title>
+    <title>STOCKPILL.COM</title>
+    <style>
+        body{
+            color: white;
+            font-family: "Helvetica Neue", sans-serif;
+        }
+        .hero {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #001529, #004d40);
+            overflow: hidden;
+            color: white;
+            text-align: center;
+            padding-top: 4rem;
+            border-radius: 0 0 10px 10px;
+            z-index: 0; /* 👈 Push behind content */
+            pointer-events: none; /* 👈 Allow interaction with content below */
+        }
+
+        .pill{
+            position: absolute;
+            width: 20px;
+            height: 10px;
+            background:white;
+            border-radius: 50px;
+            opacity: 0.2;
+            animation: floatUp 8s linear infinite;
+        }
+
+        /* Create multiple pills with different positions/speeds */
+        .pill:nth-child(1) { left: 10%; animation-duration: 10s; }
+        .pill:nth-child(2) { left: 40%; animation-duration: 6s; }
+        .pill:nth-child(3) { left: 70%; animation-duration: 9s; }
+        
+        @keyframes floatUp {
+            0%{
+                top: 100%;
+                transform: rotate(0deg);
+            }
+            100% {
+                top: -20%;
+                transform: rotate(360deg);
+            }
+        }
+
+    </style>
 </head>
 <body>
-    <h1>Stock Analyzer</h1>
+    <div class="hero">
+        <div class="pill"></div>
+        <div class="pill"></div>
+        <div class="pill"></div>
+    </div>
+    <div style="position: relative; z-index: 1;">
+    <h1 >Stock Analyzer</h1>
     <form method="post">
         <label for="symbol">Enter Stock Symbol:</label>
         <input type="text" name="symbol" id="symbol" value="{{ symbol }}">
@@ -14,7 +68,7 @@
 
 
     {% if signal %}
-        <h2>Signal: {{ signal }}</h2>
+        <h2>Suggested Action: {{ signal }}</h2>
         <img src="{{ url_for('static', filename='output.png') }}" width="800">
 
         <a href="{{ url_for('statsForNerds') }}?symbol={{ symbol }}">
@@ -44,8 +98,12 @@
     <button type="submit">Go to My Watchlist</button>
     </form>
 
-</body>
-<form action="/recommend" method="get">
+    <form action="{{ url_for('logout') }}" method="post">
+    <button type="submit">logout</button>
+    </form>
+    <form action="/recommend" method="get">
     <button type="submit">View Recommended Stocks</button>
 </form>
+</div>
+</body>
 </html>
