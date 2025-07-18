@@ -1,19 +1,186 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Login</title>
+    <title>STOCKPILL.COM</title>
+    <style>
+        body, html{
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        h1{
+            font-family: "Helvetica Neue", sans-serif;
+            font-weight: bold;
+        }
+        body{
+            background-color: #001f3f;
+            color: white;
+        }
+        .button {
+            display: inline-block;
+            background-color: #007bff; /* blue for login */
+            color: white;
+            padding: 10px 20px;
+            font-family: "Helvetica Neue", sans-serif;
+            font-weight: bold;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            text-decoration: none;
+            position: relative;
+            z-index: 10;
+            width:100px;
+            margin: 0 10px;
+
+        }
+
+        .button:hover {
+            filter: brightness(1.15);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+        }
+        
+        .button.orange {
+            z-index: 10;
+            position: relative;
+            background-color: #f57c00;
+        }
+
+        .hero{
+            position: relative;
+            height: 100vh;
+            background: linear-gradient(135deg, #001529, #004d40);
+            overflow: hidden;
+            color:white;
+            text-align: center;
+            padding-top: 4rem;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .pill{
+            position: absolute;
+            width: 20px;
+            height: 10px;
+            background:white;
+            border-radius: 50px;
+            opacity: 0.2;
+            animation: floatUp 8s linear infinite;
+        }
+
+        /* Create multiple pills with different positions/speeds */
+        .pill:nth-child(1) { left: 10%; animation-duration: 10s; }
+        .pill:nth-child(2) { left: 40%; animation-duration: 6s; }
+        .pill:nth-child(3) { left: 70%; animation-duration: 9s; }
+        
+        @keyframes floatUp {
+            0%{
+                top: 100%;
+                transform: rotate(0deg);
+            }
+            100% {
+                top: -20%;
+                transform: rotate(360deg);
+            }
+        }
+        .modal-content{
+            font-family: "Helvetica Neue", sans-serif;
+            font-weight: bold;
+            background-color: #001f3f;
+            display: none;
+            position:fixed;
+            z-index: 20;
+            left: 50%;
+            top: 40%;
+            transform: translate(-50%, -50%);
+            padding: 1rem;
+            border:3px solid #ffffff;
+            width: 40%;
+            height: 20%
+        }
+
+        .closelogin{
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .closelogin:hover,
+        .closelogin:focus{
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-    <h1>Login</h1>
-    <form method="post">
-        <label>Username:</label>
-        <input type="text" name="username" required>
-        <br>
-        <label>Password:</label>
-        <input type="password" name="password" required>
-        <br>
-        <button type="submit">Login</button>
-    </form>
-    <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+    <div class="hero">
+        <h1>Welcome to STOCKPILL.COM</h1>
+        <div class="pill"></div>
+        <div class="pill"></div>
+        <div class="pill"></div>
+        <button id="loginButton" class="button">Login</button>
+        <button id="registerButton" class="button orange">Register</button>
+    </div>
+
+    <div id="loginPopup" class="modal-content">
+        <span class="closelogin">&times;</span>
+        <p>Login</p>
+        
+        <form method="post">
+            <label>Username:</label>
+            <input type="text" name="username" required>
+            <br>
+            <label>Password:</label>
+            <input type="password" name="password" required>
+            <br>
+            <button type="submit" name="form_type" value="login">Login</button>
+        </form>
+    </div>
+
+    <div id="registerPopup" class="modal-content">
+        <span class="closelogin">&times;</span>
+        <p>Register</p>
+
+        <form method="post">
+            <label>Create username:</label>
+            <input type="text" name="reg_username" required>
+            <br>
+            <label>Create password:</label>
+            <input type="password" name="reg_password" required>
+            <br>
+            <button type="submit" name="form_type" value="register">Register</button>
+        </form>
+    </div>
+
 </body>
 </html>
+
+<script>
+    var loginButton = document.getElementById("loginButton");
+    var loginPopup = document.getElementById("loginPopup");
+    var closeLoginButton = document.getElementsByClassName("closelogin")[0];
+    var closeRegisterButton = document.getElementsByClassName("closelogin")[1];
+    
+    var registerButton = document.getElementById("registerButton");
+    var registerPopup = document.getElementById("registerPopup");
+
+    loginButton.onclick = function() {
+        loginPopup.style.display = "block";
+    }
+
+    registerButton.onclick = function() {
+        registerPopup.style.display = "block";
+    }
+
+    closeLoginButton.onclick = function() {
+        loginPopup.style.display = "none";
+    }
+
+    closeRegisterButton.onclick = function() {
+        registerPopup.style.display = "none";
+    }
+
+</script>
