@@ -22,7 +22,7 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if "user_id" not in session:
-            return redirect(url_for("login"))
+            return redirect(url_for("homepage"))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -41,33 +41,56 @@ def register():
             conn.close()
             return "Username already exists. Try another one."
         conn.close()
-        return redirect(url_for("login"))
+        return redirect(url_for("homepage"))
 
     return render_template("register.html")
 
-@app.route("/login", methods=["GET", "POST"])
-def login():
+@app.route("/homepage", methods=["GET", "POST"])
+def homepage():
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        form_type = request.form.get("form_type")
 
-        conn = get_db_connection()
-        user = conn.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
-        conn.close()
+        if form_type == "login":
+            username = request.form["username"]
+            password = request.form["password"]
 
-        if user and bcrypt.check_password_hash(user["password"], password):
-            session["user_id"] = user["id"]
-            session["username"] = user["username"]
-            return redirect(url_for("index"))
-        else:
-            return "Invalid credentials"
+            conn = get_db_connection()
+            user = conn.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
+            conn.close()
 
+            if user and bcrypt.check_password_hash(user["password"], password):
+                session["user_id"] = user["id"]
+                session["username"] = user["username"]
+                return redirect(url_for("index"))
+            else:
+                return "Invalid credentials"
+            
+        elif form_type == "register":
+            username = request.form["reg_username"]
+            password = request.form["reg_password"]
+
+            hashed_pw = bcrypt.generate_password_hash(password).decode("utf-8")
+
+            conn = get_db_connection()
+            try:
+                conn.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_pw))
+                conn.commit()
+            except sqlite3.IntegrityError:
+                conn.close()
+                return "Username already exists. Try another one."
+            conn.close()
+            return redirect(url_for("homepage"))
+        
     return render_template("login.html")
+    
 
-@app.route("/logout")
+@app.route("/logout", methods=["POST"])
 def logout():
-    session.clear()
-    return redirect(url_for("login"))
+    print('logout')
+    if request.method == "POST":
+        session.clear()
+        return redirect(url_for("homepage"))
+
 
 @app.route("/", methods=["GET", "POST"])
 @login_required
