@@ -1,8 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-from stock_analysis import analyze_stock, generate_fair_value, get_recommended_stocks, get_stock_news
+from stock_analysis import is_valid_stock, check_stock, generate_fair_value, volatility, get_recommended_stocks, get_stock_news
 from flask_bcrypt import Bcrypt
 import sqlite3
 import os
+import pandas as pd
 from flask import flash
 
 app = Flask(__name__)
@@ -109,11 +110,16 @@ def index():
 
     if request.method == "POST":
         symbol = request.form["symbol"].upper()
-        signal = analyze_stock(symbol)
+        if is_valid_stock(symbol):
+            signal = check_stock(symbol)
+            print(signal, 'this is the fucking signal')
+        #signal = analyze_stock(symbol)
     else:
         if symbols:
             symbol = symbols[0]
-            signal = analyze_stock(symbol)
+            if is_valid_stock(symbol):
+                signal = check_stock(symbol)
+            #signal = analyze_stock(symbol)
             news = get_stock_news(symbol)
 
     return render_template("index.html", signal=signal, symbol=symbol, news=news)
@@ -129,7 +135,17 @@ def statsForNerds():
         signal = 'Current price is overvalued'
     else:
         signal = 'Current price is undervalued'
-    return render_template("statsForNerds.html", symbol=symbol, fair_value=fair_value, latest_price=latest_price, signal=signal)
+    data = pd.read_sql(f"SELECT * FROM '{symbol}'", sqlite3.connect("data/stock_data.db"))
+    vol = volatility(data)
+    vol_str = ''
+    if vol < 0.01:
+        vol_str = 'low'
+    if 0.01 <= vol <= 0.02:
+        vol_str = 'medium'
+    else:
+        vol_str = 'high'
+
+    return render_template("statsForNerds.html", symbol=symbol, fair_value=fair_value, latest_price=latest_price, vol_str=vol_str, signal=signal)
 
 
 @app.route("/recommend")
@@ -164,7 +180,8 @@ def watchlist():
     signals = []
     for sym in symbols:
         try:
-            signal = analyze_stock(sym)
+            if is_valid_stock(sym):
+                signal = check_stock(sym)
         except Exception as e:
             signal = f"Error: {e}"
         signals.append({"symbol": sym, "signal": signal})
