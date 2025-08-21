@@ -127,7 +127,7 @@ def index():
 @app.route("/statsForNerds", methods=["GET", "POST"])
 @login_required
 def statsForNerds():
-    symbol = request.args.get("symbol", "")
+    symbol = request.args.get("symbol", "").upper()
     fair_value = generate_fair_value(symbol)[0]
     latest_price = generate_fair_value(symbol)[1]
     signal = ''
@@ -145,7 +145,19 @@ def statsForNerds():
     else:
         vol_str = 'high'
 
-    return render_template("statsForNerds.html", symbol=symbol, fair_value=fair_value, latest_price=latest_price, vol_str=vol_str, signal=signal)
+    # NEW: import and compute P/E
+    from stock_analysis import pe_ratio
+    pe_data = pe_ratio(symbol)  # dict: {pe, price, eps, eps_type, reason}
+
+    return render_template(
+        "statsForNerds.html",
+        symbol=symbol,
+        fair_value=fair_value,
+        latest_price=latest_price,
+        vol_str=vol_str,
+        signal=signal,
+        pe_data=pe_data  # 👈 pass to template
+    )
 
 
 @app.route("/recommend")
