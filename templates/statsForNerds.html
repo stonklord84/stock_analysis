@@ -124,25 +124,55 @@
             <th>Value</th>
         </tr>
         <tr>
-            <td>Fair Value</td>
-            <span class="info-tooltip">ℹ️
-                <span class="tooltip-text">
-                    Estimated using EPS × industry P/E<br>
-                    EPS from yfinance; industry P/E is an educated guess according to online sources.
+            <td>
+                Fair Value
+                <span class="info-tooltip">ℹ️
+                    <span class="tooltip-text">
+                        Estimated using EPS × industry P/E<br>
+                        EPS from yfinance; industry P/E is an educated guess according to online sources.
+                    </span>
                 </span>
-            </span>
+            </td>
             <td>{{ fair_value }}</td>
         </tr>
         <tr>
             <td>Latest Price</td>
             <td>{{ latest_price }}, {{ signal }}</td>
         </tr>
+        
         <tr>
             <td>Volatility</td>
             <td>{{ vol_str }}</td>
         </tr>
-        <!-- Add more rows here if needed -->
+        
+        <tr>
+            <td>
+                P/E Ratio
+                <span class="info-tooltip">ℹ️
+                    <span class="tooltip-text">
+                        Price divided by Earnings per Share (EPS).<br>
+                        Uses trailing EPS if positive, and uses forward EPS if trailing is not available.<br>
+                        P/E is N/A when EPS ≤ 0 or unavailable.
+                    </span>
+                </span>
+            </td>
+            <td>
+                {% if pe_data.pe is not none %}
+                    {{ pe_data.pe }}
+                    <small>(EPS: {{ pe_data.eps }} — {{ pe_data.eps_type }})</small>
+                {% else %}
+                    N/A
+                    {% if pe_data.reason %}
+                        <small>({{ pe_data.reason }})</small>
+                    {% endif %}
+                    {% if pe_data.eps_type and pe_data.eps_type != 'none' and pe_data.eps %}
+                        <small>(EPS: {{ pe_data.eps }} — {{ pe_data.eps_type }})</small>
+                    {% endif %}
+                {% endif %}
+            </td>
+        </tr>
     </table>
+
     </div>
 </body>
 </html>
