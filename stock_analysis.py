@@ -132,13 +132,20 @@ def generate_chart(symbol, data):
 def generate_stock_signal(symbol, data):
     if "Signal" not in data.columns or data.empty:
         return None
+    print("MA5:", data["MA5"].iloc[-1], "MA20:", data["MA20"].iloc[-1], "A5, A20")
     signal = 0
+
+    # 1. Moving Average crossover (trend)
     signal += avg_crossover(data)
-    fair_value = generate_fair_value(symbol)
-    if fair_value[0] < fair_value[1]:
-        signal -= 1
+
+    # 2. Fair Value check (valuation relative to industry)
+    fair_value, latest_price = generate_fair_value(symbol)
+    if fair_value < latest_price:
+        signal -= 1  # overvalued vs peers
     else:
-        signal += 1
+        signal += 1  # undervalued vs peers
+
+    # 3. Volatility (risk)
     vol = volatility(data)
     if vol < 0.01:
         signal += 1
@@ -146,8 +153,25 @@ def generate_stock_signal(symbol, data):
         signal += 0
     else:
         signal -= 1
-    if signal == 1:
-        return "BULLISH- BUY"
+
+    # 4. Absolute P/E check (cheap vs expensive)
+    try:
+        pe_data = pe_ratio(symbol)  # dict with {pe, eps, eps_type, reason}
+        pe = pe_data.get("pe")
+        if pe is not None:
+            if pe < 15:          # cheap
+                signal += 1
+            elif pe > 30:        # expensive
+                signal -= 1
+            # between 15 and 30 → neutral (no change)
+    except Exception as e:
+        print(f"P/E check failed for {symbol}: {e}")
+
+    # Final signal → convert numeric score into text
+    if signal >= 2:
+        return "BULLISH - BUY"
+    elif signal == 1:
+        return "SLIGHTLY BULLISH / HOLD-BUY"
     elif signal == 0:
         return "HOLD"
     else:
@@ -196,6 +220,54 @@ def volatility(data):
     data["Return"] = data["Close"].pct_change()
     volatility = data["Return"].std()
     return volatility
+
+def _get_latest_price(symbol: str) -> float | None:
+    """Read the most recent Close price from your SQLite cache."""
+    try:
+        conn = sqlite3.connect("data/stock_data.db")
+        cur = conn.cursor()
+        cur.execute(f'SELECT Close FROM "{symbol}" ORDER BY Date DESC LIMIT 1')
+        row = cur.fetchone()
+        conn.close()
+        return float(row[0]) if row else None
+    except Exception:
+        return None
+
+def _get_eps(symbol: str) -> tuple[float | None, str]:
+    """
+    Try trailingEps first; if missing/None/<=0, fall back to forwardEps.
+    Returns (eps_value, source_label).
+    """
+    try:
+        stock = yf.Ticker(symbol)
+        info = stock.info or {}
+        trailing = info.get("trailingEps")
+        if isinstance(trailing, (int, float)) and trailing and trailing > 0:
+            return float(trailing), "trailing"
+        forward = info.get("forwardEps")
+        if isinstance(forward, (int, float)) and forward and forward > 0:
+            return float(forward), "forward"
+        return None, "none"
+    except Exception:
+        return None, "none"
+
+def pe_ratio(symbol: str) -> dict:
+    """
+    Calculate Price/Earnings. 
+    If EPS <= 0 or missing, return pe=None and a reason.
+    """
+    price = _get_latest_price(symbol)
+    eps, eps_type = _get_eps(symbol)
+
+    if price is None:
+        return {"pe": None, "price": None, "eps": eps, "eps_type": eps_type, "reason": "No cached price"}
+    if eps is None:
+        return {"pe": None, "price": price, "eps": None, "eps_type": eps_type, "reason": "EPS unavailable or non-positive"}
+    try:
+        pe = round(price / eps, 2)
+        return {"pe": pe, "price": price, "eps": eps, "eps_type": eps_type, "reason": None}
+    except Exception as e:
+        return {"pe": None, "price": price, "eps": eps, "eps_type": eps_type, "reason": str(e)}
 
 
 def get_recommended_stocks() -> list:
